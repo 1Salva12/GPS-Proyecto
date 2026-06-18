@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Calcula tu Ruta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --azul: #2b7de9;
+            --azul-dark: #1b5fb7;
+            --azul-light: #eef5ff;
+            --verde: #0f9d58;
+            --verde-light: #e6f4ea;
+            --rojo: #d93025;
+            --rojo-light: #fce8e6;
+            --naranja: #f29900;
+            --naranja-light: #fef3e2;
+            --gris: #f4f6fb;
+            --gris2: #e2eaf5;
+            --gris3: #9aa0a6;
+            --texto: #1a2233;
+            --texto2: #5f6368;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            overflow: hidden;
+            background: #e8edf5;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ══ PANEL LATERAL ══ */
+        #panel {
+            width: 330px;
+            min-width: 330px;
+            height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 24px rgba(43, 125, 233, 0.10);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        #panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #panel::-webkit-scrollbar-thumb {
+            background: var(--gris2);
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            background: var(--azul);
+            padding: 18px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .panel-header .logo {
+            font-size: 24px;
+        }
+
+        .panel-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .panel-header p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .panel-body {
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .sec-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--gris3);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        /* ── Inputs de ruta ── */
+        .rutas-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ruta-fila {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .ruta-letra {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: var(--azul);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .ruta-letra.b {
+            background: var(--verde);
+        }
+
+        .input-ruta {
+            flex: 1;
+            height: 38px;
+            border: 1.5px solid var(--gris2);
+            border-radius: 10px;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--texto);
+            font-family: inherit;
+            outline: none;
+            background: var(--gris);
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .input-ruta:focus {
+            border-color: var(--azul);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.12);
+        }
+
+        .input-ruta::placeholder {
+            color: var(--gris3);
+            font-weight: 400;
+        }
+
+        .btn-x {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: var(--gris2);
+            border: none;
+            color: var(--gris3);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.17s;
+        }
+
+        .btn-x:hover {
+            background: var(--rojo-light);
+            color: var(--rojo);
+        }
+
+        /* ── Botones IR / LIMPIAR ── */
+        .btns-principales {
+            display: flex;
+            gap: 8px;
+        }
+
+        #btnIr {
+            flex: 1;
+            height: 40px;
+            background: var(--azul);
+            color: white;
+            border: none;
+            border-radius: 11px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.17s, transform 0.1s;
+        }
+
+        #btnIr:hover {
+            background: var(--azul-dark);
+        }
+
+        #btnIr:active {
+            transform: scale(0.97);
+        }
+
+        #btnIr:disabled {
+            background: var(--gris3);
+            cursor: not-allowed;
+        }
+
+        #btnLimpiar {
+            height: 40px;
+            padding: 0 16px;
+            background: var(--gris);
+            color: var(--texto2);
+            border: 1.5px solid var(--gris2);
+            border-radius: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.17s;
+        }
+
+        #btnLimpiar:hover {
+            background: var(--gris2);
+            color: var(--texto);
+        }
+
+        /* ── Vehículo + Combustible ── */
+        .vehiculo-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .vehiculo-col {
+            flex: 1;
+        }
+
+        .combustible-col {
+            flex: 1;
+        }
+
+        .select-vehiculo,
+        .select-comb {
+            width: 100%;
+            height: 38px;
+            border: 1.5px solid var(--gris2);
+            border-radius: 10px;
+            background: var(--gris);
+            padding: 0 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--texto);
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .select-vehiculo:focus,
+        .select-comb:focus {
+            border-color: var(--azul);
+            background: white;
+        }
+
+        .input-num {
+            width: 100%;
+            height: 38px;
+            border: 1.5px solid var(--gris2);
+            border-radius: 10px;
+            background: var(--gris);
+            padding: 0 10px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--texto);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .input-num:focus {
+            border-color: var(--naranja);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(242, 153, 0, 0.12);
+        }
+
+        .input-num::placeholder {
+            color: var(--gris3);
+            font-weight: 400;
+        }
+
+        .personalizado-box {
+            display: none;
+            margin-top: 6px;
+        }
+
+        /* ── Horarios ── */
+        .horarios-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .horario-col {
+            flex: 1;
+        }
+
+        .input-time {
+            width: 100%;
+            height: 38px;
+            border: 1.5px solid var(--gris2);
+            border-radius: 10px;
+            background: var(--gris);
+            padding: 0 10px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--texto);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-time:focus {
+            border-color: var(--azul);
+            background: white;
+        }
+
+        /* ── Casetas ── */
+        .casetas-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--texto);
+            cursor: pointer;
+        }
+
+        .check-label input[type=checkbox] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* ── Botón ruta alternativa ── */
+        #btnAlternativa {
+            width: 100%;
+            height: 38px;
+            background: var(--verde-light);
+            color: var(--verde);
+            border: 1.5px solid #c3e6cb;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.17s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        #btnAlternativa:hover {
+            background: var(--verde);
+            color: white;
+            border-color: var(--verde);
+        }
+
+        #btnAlternativa:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Tabs rutas ── */
+        .rutas-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .tab-ruta {
+            width: 100%;
+            padding: 9px 13px;
+            background: var(--gris);
+            border: 1.5px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: all 0.17s;
+        }
+
+        .tab-ruta:hover {
+            background: var(--azul-light);
+        }
+
+        .tab-ruta.activo {
+            background: var(--azul-light);
+            border-color: var(--azul);
+        }
+
+        .tab-ruta strong {
+            display: block;
+            font-size: 13px;
+            color: var(--texto);
+        }
+
+        .tab-ruta small {
+            font-size: 11px;
+            color: var(--texto2);
+            font-weight: 400;
+        }
+
+        .tab-ruta.activo strong,
+        .tab-ruta.activo small {
+            color: var(--azul);
+        }
+
+        /* ── Datos resultados ── */
+        .datos-box {
+            background: var(--gris);
+            border: 1.5px solid var(--gris2);
+            border-radius: 14px;
+            padding: 14px;
+            flex: 1;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .datos-placeholder {
+            color: var(--gris3);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            margin: auto;
+        }
+
+        .datos-contenido {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .dato-fila {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid var(--gris2);
+        }
+
+        .dato-icono {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .dato-icono.azul {
+            background: var(--azul-light);
+        }
+
+        .dato-icono.verde {
+            background: var(--verde-light);
+        }
+
+        .dato-icono.naranja {
+            background: var(--naranja-light);
+        }
+
+        .dato-icono.rojo {
+            background: var(--rojo-light);
+        }
+
+        .dato-info .etq {
+            font-size: 10px;
+            color: var(--gris3);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .dato-info .val {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--texto);
+        }
+
+        .dato-info .sub {
+            font-size: 11px;
+            color: var(--texto2);
+        }
+
+        .alerta-wrap {
+            padding: 9px 11px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alerta-wrap.naranja {
+            background: var(--naranja-light);
+            color: #7a4f00;
+            border: 1px solid #fdd663;
+        }
+
+        .alerta-wrap.verde {
+            background: var(--verde-light);
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alerta-wrap.rojo {
+            background: var(--rojo-light);
+            color: #c5221f;
+            border: 1px solid #fad2cf;
+        }
+
+        .alerta-wrap.azul {
+            background: var(--azul-light);
+            color: var(--azul);
+            border: 1px solid #c5d9f7;
+        }
+
+        /* ── Mapa ── */
+        #map {
+            flex: 1;
+            height: 100vh;
+        }
+
+        /* ── Spinner ── */
+        .spin {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: giro 0.7s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes giro {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Mensaje mapa ── */
+        #msgMapa {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 34, 51, 0.88);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 20;
+            pointer-events: none;
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 680px) {
+            body {
+                flex-direction: column;
+            }
+
+            #panel {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                max-height: 55vh;
+            }
+
+            #map {
+                flex: 1;
+                height: auto;
+            }
+
+            #msgMapa {
+                bottom: 10px;
+                font-size: 12px;
+                white-space: normal;
+                text-align: center;
+                max-width: 85vw;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════ PANEL LATERAL ═══════════════ -->
+    <div id="panel">
+        <div class="panel-header">
+            <span class="logo">🗺️</span>
+            <div>
+                <h1>Calcula tu Ruta</h1>
+                <p>Dijkstra + Haversine · México</p>
+            </div>
+        </div>
+
+        <div class="panel-body">
+
+            <!-- ORIGEN Y DESTINO -->
+            <div>
+                <p class="sec-label">Origen y destino</p>
+                <div class="rutas-wrap">
+                    <div class="ruta-fila">
+                        <div class="ruta-letra">A</div>
+                        <input class="input-ruta" id="origen" placeholder="Punto de salida" autocomplete="off">
+                        <button class="btn-x" onclick="limpiarOrigen()">×</button>
+                    </div>
+                    <div class="ruta-fila">
+                        <div class="ruta-letra b">B</div>
+                        <input class="input-ruta" id="destino" placeholder="Destino" autocomplete="off">
+                        <button class="btn-x" onclick="limpiarDestino()">×</button>
+                    </div>
+                </div>
+                <div class="btns-principales" style="margin-top:10px">
+                    <button id="btnIr" onclick="calcularRuta()">Ir →</button>
+                    <button id="btnLimpiar" onclick="limpiarTodo()">Limpiar</button>
+                </div>
+            </div>
+
+            <!-- VEHÍCULO, TIPO COMBUSTIBLE Y LITROS -->
+            <div>
+                <p class="sec-label">Vehículo y combustible</p>
+                <div class="vehiculo-row">
+                    <div class="vehiculo-col">
+                        <select class="select-vehiculo" id="vehiculo" onchange="onCambioVehiculo()">
+                            <option value="12">🚗 Auto (12 km/l)</option>
+                            <option value="8">🚙 Camioneta (8 km/l)</option>
+                            <option value="25">🏍️ Moto (25 km/l)</option>
+                            <option value="4">🚛 Camión (4 km/l)</option>
+                            <option value="personalizado">✏️ Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="combustible-col">
+                        <select class="select-comb" id="tipoCombustible">
+                            <option value="gasolina">⛽ Gasolina</option>
+                            <option value="diesel">🛢️ Diésel</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top:6px">
+                    <input class="input-num" id="combustibleInicial" type="number" min="0" step="0.1"
+                        placeholder="⛽ Litros actuales en tanque">
+                </div>
+                <div class="personalizado-box" id="personalizadoBox">
+                    <input class="input-num" id="rendimientoPersonalizado" type="number"
+                        placeholder="Rendimiento km/l, ej: 10" style="margin-top:6px">
+                </div>
+            </div>
+
+            <!-- HORA DE SALIDA + LLEGADA -->
+            <div>
+                <p class="sec-label">Horarios</p>
+                <div class="horarios-row">
+                    <div class="horario-col">
+                        <p style="font-size:11px;color:var(--gris3);margin-bottom:4px">Hora de salida</p>
+                        <input class="input-time" type="time" id="horaSalida">
+                    </div>
+                    <div class="horario-col">
+                        <p style="font-size:11px;color:var(--gris3);margin-bottom:4px">Hora de llegada</p>
+                        <input class="input-time" type="time" id="horaLlegada" readonly
+                            style="background:#f9f9f9;color:var(--gris3)">
+                    </div>
+                </div>
+                <p style="font-size:11px;color:var(--gris3);margin-top:5px" id="textoZonaHoraria"></p>
+            </div>
+
+            <!-- CASETAS -->
+            <div>
+                <p class="sec-label">Casetas</p>
+                <div class="casetas-row">
+                    <label class="check-label">
+                        <input type="checkbox" id="evitarCasetas" checked>
+                        Evitar casetas si es posible
+                    </label>
+                </div>
+            </div>
+
+            <!-- RUTAS ALTERNATIVAS -->
+            <div>
+                <button id="btnAlternativa" onclick="alternarRutaMostrada()" disabled>
+                    🔀 Ver ruta alternativa
+                </button>
+                <div class="rutas-tabs" id="rutaTabs" style="margin-top:8px"></div>
+            </div>
+
+            <!-- ZONA DE RIESGO -->
+            <div>
+                <p class="sec-label">Zona de riesgo</p>
+                <div class="vehiculo-row">
+                    <div class="vehiculo-col">
+                        <button id="btnZona" onclick="toggleZonaProhibida()"
+                            style="width:100%;height:38px;border:none;border-radius:10px;background:var(--rojo-light);color:var(--rojo);font-weight:700;font-family:inherit;cursor:pointer;">
+                            ⚠️ Marcar zona de riesgo
+                        </button>
+                    </div>
+                    <div class="combustible-col">
+                        <button id="btnQuitarZona" onclick="quitarZonaProhibida()"
+                            style="width:100%;height:38px;border:none;border-radius:10px;background:var(--gris);color:var(--texto2);font-weight:600;font-family:inherit;cursor:pointer;">
+                            Quitar zona
+                        </button>
+                    </div>
+                </div>
+                <div class="vehiculo-row" style="margin-top:6px">
+                    <div class="vehiculo-col">
+                        <input class="input-num" id="radioZona" type="number" min="1" step="0.5" value="5"
+                            placeholder="Radio km">
+                    </div>
+                </div>
+                <div style="margin-top:6px;font-size:12px;color:var(--texto2);line-height:1.4;">
+                    Esta es una zona de riesgo. Ten cuidado al pasar por aquí; puede haber delincuencia.
+                </div>
+            </div>
+
+            <!-- DATOS RESULTADOS -->
+            <div>
+                <p class="sec-label">Datos del viaje</p>
+                <div class="datos-box" id="datosBox">
+                    <p class="datos-placeholder" id="datosPlaceholder">
+                        Calcula una ruta para<br>ver los resultados aquí
+                    </p>
+                    <div class="datos-contenido" id="datosContenido">
+
+                        <!-- Distancia -->
+                        <div class="dato-fila">
+                            <div class="dato-icono azul">📍</div>
+                            <div class="dato-info">
+                                <div class="etq">Distancia</div>
+                                <div class="val" id="resDistancia">—</div>
+                            </div>
+                        </div>
+
+                        <!-- Duración -->
+                        <div class="dato-fila">
+                            <div class="dato-icono azul">⏱️</div>
+                            <div class="dato-info">
+                                <div class="etq">Tiempo estimado</div>
+                                <div class="val" id="resDuracion">—</div>
+                                <div class="sub" id="resTrafico"></div>
+                            </div>
+                        </div>
+
+                        <!-- Hora de llegada con zona horaria -->
+                        <div class="dato-fila" id="filaHoraLlegada" style="display:none">
+                            <div class="dato-icono azul">🕐</div>
+                            <div class="dato-info">
+                                <div class="etq">Hora de llegada estimada</div>
+                                <div class="val" id="resHoraLlegada">—</div>
+                                <div class="sub" id="resZonaHoraria"></div>
+                            </div>
+                        </div>
+
+                        <!-- Combustible consumo -->
+                        <div class="dato-fila">
+                            <div class="dato-icono verde">⛽</div>
+                            <div class="dato-info">
+                                <div class="etq">Consumo combustible</div>
+                                <div class="val" id="resGasolina">—</div>
+                                <div class="sub" id="resPrecioComb"></div>
+                            </div>
+                        </div>
+
+                        <!-- Gasto total -->
+                        <div class="dato-fila">
+                            <div class="dato-icono naranja">💰</div>
+                            <div class="dato-info">
+                                <div class="etq">Gasto total estimado</div>
+                                <div class="val" id="resGasto">—</div>
+                                <div class="sub" id="resGastoSub"></div>
+                            </div>
+                        </div>
+
+                        <!-- Advertencia combustible -->
+                        <div class="alerta-wrap rojo" id="resCombAdvertencia" style="display:none">
+                            <span id="textoCombAdvertencia"></span>
+                        </div>
+
+                        <!-- Combustible restante (ok) -->
+                        <div class="alerta-wrap verde" id="resCombRestante" style="display:none">
+                            <span id="textoCombRestante"></span>
+                        </div>
+
+                        <!-- Casetas -->
+                        <div class="alerta-wrap naranja" id="resCasetas" style="display:none">
+                            <span id="textoCasetas"></span>
+                        </div>
+
+                        <!-- Zona peligrosa -->
+                        <div class="alerta-wrap rojo" id="resZonaPeligrosa" style="display:none">
+                            <span id="textoZonaPeligrosa"></span>
+                        </div>
+
+                        <!-- Gasolineras recomendadas -->
+                        <div class="alerta-wrap verde" id="resGasolineras" style="display:none">
+                            <span id="textoGasolineras"></span>
+                        </div>
+
+                        <!-- Tráfico alerta -->
+                        <div class="alerta-wrap azul" id="resTraficoAlerta" style="display:none">
+                            <span id="textoTrafico"></span>
+                        </div>
+
+                        <!-- Status general -->
+                        <div class="alerta-wrap azul" id="resStatus" style="display:none">
+                            <span id="textoStatus"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /panel-body -->
+    </div>
+
+    <!-- ═══════════════ MAPA ═══════════════ -->
+    <div id="map"></div>
+    <div id="msgMapa">Haz clic en el mapa para elegir origen y destino</div>
+
+    <script>
+        // ══════════════════════════════════════
+        //  ESTADO GLOBAL
+        // ══════════════════════════════════════
+        let mapa, geocoder;
+        let autoOrigen, autoDestino;
+        let lineaRuta = null;
+        let lineaRutaAlterna = null;
+        let marcadores = [];
+        let marcadoresGasolineras = [];
+        let circuloZona = null;
+        let zonaProhibida = null;
+        let origenSel = false, destinoSel = false;
+        let origenLatLng = null, destinoLatLng = null;
+        let rutaIndex = 0, rutaTotal = 1;
+        let ultimaRutasInfo = [];
+        let ultimaData = null;
+        let mostrandoRutaAlterna = false;
+
+        // Factor de tráfico por hora del día (0-23)
+        const FACTORES_TRAFICO = [
+            1.0, 1.0, 1.0, 1.0, 1.0, 1.05,
+            1.15, 1.35, 1.55, 1.40, 1.20, 1.15,
+            1.20, 1.15, 1.10, 1.10, 1.20, 1.45,
+            1.60, 1.50, 1.30, 1.15, 1.05, 1.0
+        ];
+
+        // ══════════════════════════════════════
+        //  INIT MAPA
+        // ══════════════════════════════════════
+        function iniciarMapa() {
+            mapa = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 23.6345, lng: -102.5528 },
+                zoom: 5, mapTypeId: "roadmap",
+                fullscreenControl: true, streetViewControl: false, mapTypeControl: false,
+                zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
+            });
+            geocoder = new google.maps.Geocoder();
+
+            autoOrigen = new google.maps.places.Autocomplete(
+                document.getElementById("origen"),
+                { componentRestrictions: { country: "mx" }, fields: ["formatted_address", "geometry"] }
+            );
+            autoDestino = new google.maps.places.Autocomplete(
+                document.getElementById("destino"),
+                { componentRestrictions: { country: "mx" }, fields: ["formatted_address", "geometry"] }
+            );
+
+            autoOrigen.addListener("place_changed", () => {
+                const p = autoOrigen.getPlace();
+                if (p.formatted_address) document.getElementById("origen").value = p.formatted_address;
+                if (p.geometry?.location) { origenLatLng = p.geometry.location; origenSel = true; }
+            });
+            autoDestino.addListener("place_changed", () => {
+                const p = autoDestino.getPlace();
+                if (p.formatted_address) document.getElementById("destino").value = p.formatted_address;
+                if (p.geometry?.location) { destinoLatLng = p.geometry.location; destinoSel = true; }
+            });
+
+            mapa.addListener("click", e => {
+                if (zonaProhibida) { setMsg("⚠ Quita la zona prohibida antes de elegir otro punto"); return; }
+                elegirDesdeMapa(e.latLng);
+            });
+
+            // Hora actual
+            const ahora = new Date();
+            document.getElementById("horaSalida").value =
+                String(ahora.getHours()).padStart(2, "0") + ":" + String(ahora.getMinutes()).padStart(2, "0");
+        }
+
+        // ══════════════════════════════════════
+        //  CLIC EN MAPA
+        // ══════════════════════════════════════
+        function elegirDesdeMapa(latLng) {
+            geocoder.geocode({ location: latLng }, (results, status) => {
+                const dir = (status === "OK" && results[0])
+                    ? results[0].formatted_address
+                    : latLng.lat().toFixed(6) + "," + latLng.lng().toFixed(6);
+                if (!origenSel) {
+                    document.getElementById("origen").value = dir;
+                    origenSel = true; origenLatLng = latLng;
+                    ponerMarcador(latLng, "A", "#2b7de9");
+                    setMsg("Ahora selecciona el destino");
+                } else if (!destinoSel) {
+                    document.getElementById("destino").value = dir;
+                    destinoSel = true; destinoLatLng = latLng;
+                    ponerMarcador(latLng, "B", "#0f9d58");
+                    setMsg("Presiona Ir → para calcular");
+                }
+            });
+        }
+
+        function ponerMarcador(latLng, label, color) {
+            const m = new google.maps.Marker({
+                position: latLng, map: mapa,
+                label: { text: label, color: "white", fontWeight: "bold" },
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE, scale: 13,
+                    fillColor: color, fillOpacity: 1,
+                    strokeColor: "white", strokeWeight: 2
+                }
+            });
+            marcadores.push(m);
+        }
+
+        // ══════════════════════════════════════
+        //  ZONA PROHIBIDA
+        // ══════════════════════════════════════
+        function toggleZonaProhibida() {
+            if (circuloZona) { quitarZonaProhibida(); return; }
+            if (!origenLatLng || !destinoLatLng) { setMsg("⚠ Primero selecciona origen y destino"); return; }
+            const radioKm = Math.max(1, parseFloat(document.getElementById("radioZona").value) || 3);
+            const centro = mapa.getCenter();
+            zonaProhibida = { center: centro, radiusKm: radioKm };
+            circuloZona = new google.maps.Circle({
+                center: centro, radius: radioKm * 1000, map: mapa,
+                fillColor: "#d93025", fillOpacity: 0.15,
+                strokeColor: "#d93025", strokeOpacity: 0.8, strokeWeight: 2,
+                editable: true, draggable: true
+            });
+            google.maps.event.addListener(circuloZona, 'center_changed', () => {
+                zonaProhibida.center = circuloZona.getCenter();
+            });
+            google.maps.event.addListener(circuloZona, 'radius_changed', () => {
+                zonaProhibida.radiusKm = circuloZona.getRadius() / 1000;
+            });
+            setMsg("🛑 Zona prohibida activa. Puedes ajustar el círculo");
+        }
+
+        function quitarZonaProhibida() {
+            if (circuloZona) { circuloZona.setMap(null); circuloZona = null; }
+            zonaProhibida = null;
+            setMsg("Zona prohibida desactivada");
+        }
+
+        // ══════════════════════════════════════
+        //  HELPERS DISTANCIA
+        // ══════════════════════════════════════
+        function distanciaEntrePuntos(a, b) {
+            const R = 6371;
+            const dLat = (b.lat - a.lat) * Math.PI / 180;
+            const dLng = (b.lng - a.lng) * Math.PI / 180;
+            const lat1 = a.lat * Math.PI / 180;
+            const lat2 = b.lat * Math.PI / 180;
+            const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+            return 2 * R * Math.asin(Math.sqrt(h));
+        }
+
+        function distanciaKmRuta(coords) {
+            let total = 0;
+            for (let i = 1; i < coords.length; i++) total += distanciaEntrePuntos(coords[i - 1], coords[i]);
+            return total;
+        }
+
+        function rutaEvitaZona(coords) {
+            if (!zonaProhibida || !coords || coords.length === 0) return false;
+            const centro = { lat: zonaProhibida.center.lat(), lng: zonaProhibida.center.lng() };
+            return coords.some(p => distanciaEntrePuntos(centro, p) <= zonaProhibida.radiusKm);
+        }
+
+        // ══════════════════════════════════════
+        //  VEHÍCULO
+        // ══════════════════════════════════════
+        function onCambioVehiculo() {
+            const v = document.getElementById("vehiculo").value;
+            document.getElementById("personalizadoBox").style.display = v === "personalizado" ? "block" : "none";
+        }
+
+        // ══════════════════════════════════════
+        //  CALCULAR RUTA
+        // ══════════════════════════════════════
+        function calcularRuta() { calcular(false); }
+
+        async function calcular(alternativa = false, selIdx = null) {
+            let origen = document.getElementById("origen").value.trim();
+            let destino = document.getElementById("destino").value.trim();
+            if (!origen || !destino) { setMsg("⚠ Escribe origen y destino"); return; }
+
+            const combustible = parseFloat(document.getElementById("combustibleInicial").value) || 0;
+            const vehiculo = document.getElementById("vehiculo").value;
+            const rendPers = document.getElementById("rendimientoPersonalizado").value;
+            const tipoComb = document.getElementById("tipoCombustible").value;
+            const evitarCasetas = document.getElementById("evitarCasetas").checked;
+            const horaSalida = document.getElementById("horaSalida").value;
+
+            if (origenLatLng) origen = origenLatLng.lat().toFixed(6) + "," + origenLatLng.lng().toFixed(6);
+            if (destinoLatLng) destino = destinoLatLng.lat().toFixed(6) + "," + destinoLatLng.lng().toFixed(6);
+
+            if (selIdx !== null) rutaIndex = selIdx;
+            else if (alternativa) rutaIndex = (rutaIndex + 1) % Math.max(rutaTotal, 2);
+            else rutaIndex = 0;
+
+            const btn = document.getElementById("btnIr");
+            const btnAlt = document.getElementById("btnAlternativa");
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span> Calculando...';
+            btnAlt.disabled = true;
+
+            // Zonas prohibidas activas
+            const zonasEnvio = [];
+            if (zonaProhibida) {
+                zonasEnvio.push({
+                    lat: zonaProhibida.center.lat(),
+                    lng: zonaProhibida.center.lng(),
+                    radio_km: zonaProhibida.radiusKm,
+                });
+            }
+
+            const payload = {
+                origen, destino, vehiculo,
+                rendimiento_personalizado: rendPers,
+                combustible_inicial: combustible,
+                evitar_casetas: evitarCasetas,
+                tipo_combustible: tipoComb,
+                hora_salida: horaSalida,
+                zonas_prohibidas: zonasEnvio,
+                index: rutaIndex,
+            };
+            console.log("DEBUG zonasEnvio =", zonasEnvio);
+            console.log("DEBUG payload =", payload);
+            console.log("DEBUG payload JSON =", JSON.stringify(payload));
+
+            let data;
+            try {
+                const resp = await fetch("/calcular_ruta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                data = await resp.json();
+                console.log("DEBUG response status =", resp.status);
+                console.log("DEBUG response body =", data);
+                if (!resp.ok || data.error) {
+                    setMsg("❌ " + (data.error || "Error") + " " + (data.detalle || ""));
+                    return;
+                }
+            } catch (e) {
+                setMsg("❌ No se pudo conectar con Flask");
+                return;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Ir →";
+                btnAlt.disabled = false;
+            }
+
+            ultimaData = data;
+            limpiarMapa(false);
+            dibujarRuta(data);
+            mostrarRutasTabs(data.rutas_info || [], data.ruta_index || 0);
+            rutaTotal = data.ruta_total || rutaTotal;
+            rutaIndex = data.ruta_index ?? rutaIndex;
+            mostrarDatos(data, combustible);
+            document.getElementById("msgMapa").style.display = "none";
+        }
+
+        // ══════════════════════════════════════
+        //  DIBUJAR RUTA
+        // ══════════════════════════════════════
+        function dibujarRuta(data) {
+            const coords = data.coordenadas.map(p => ({ lat: p[0], lng: p[1] }));
+            lineaRuta = new google.maps.Polyline({
+                path: coords,
+                geodesic: false,
+                strokeColor: "#2b7de9",
+                strokeOpacity: 0.92,
+                strokeWeight: 6,
+                clickable: false,
+                zIndex: 3
+            });
+            lineaRuta.setMap(mapa);
+            ponerMarcador({ lat: data.origen_coord[0], lng: data.origen_coord[1] }, "A", "#2b7de9");
+            ponerMarcador({ lat: data.destino_coord[0], lng: data.destino_coord[1] }, "B", "#0f9d58");
+
+            if (rutaEvitaZona(coords)) {
+                setMsg("⚠ La ruta sigue cerca de la zona restringida. Recalcula si necesitas otra alternativa.");
+            }
+
+            if (lineaRutaAlterna) {
+                lineaRutaAlterna.setMap(null);
+                lineaRutaAlterna = null;
+            }
+            mostrandoRutaAlterna = false;
+            const btnAlt = document.getElementById("btnAlternativa");
+            btnAlt.disabled = true;
+            btnAlt.textContent = "🔀 Ver ruta alternativa";
+
+            const alt = data.ruta_alterna_sugerida;
+            if (alt && Array.isArray(alt.coordenadas_alternativa) && alt.coordenadas_alternativa.length >= 2) {
+                const coordsAlt = alt.coordenadas_alternativa.map(p => ({ lat: p[0], lng: p[1] }));
+                lineaRutaAlterna = new google.maps.Polyline({
+                    path: coordsAlt,
+                    geodesic: false,
+                    strokeColor: "#f29900",
+                    strokeOpacity: 0.95,
+                    strokeWeight: 5,
+                    clickable: false,
+                    zIndex: 2,
+                    visible: false,
+                    icons: [{
+                        icon: {
+                            path: "M 0,-1 0,1",
+                            strokeOpacity: 0.9,
+                            scale: 4,
+                            strokeColor: "#f29900"
+                        },
+                        offset: "0",
+                        repeat: "12px"
+                    }]
+                });
+                lineaRutaAlterna.setMap(mapa);
+                btnAlt.disabled = false;
+                btnAlt.textContent = "🔀 Cambiar a ruta alterna";
+            }
+
+            // Gasolineras reales (devueltas por Flask)
+            limpiarGasolineras();
+            const gasolineras = data.gasolineras_sugeridas || [];
+            gasolineras.forEach((g, idx) => {
+                if (!g.lat || !g.lng) return;
+                const m = new google.maps.Marker({
+                    position: { lat: g.lat, lng: g.lng },
+                    map: mapa,
+                    title: g.nombre || `Gasolinera ${idx + 1}`,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE, scale: 8,
+                        fillColor: "#f29900", fillOpacity: 0.9,
+                        strokeColor: "white", strokeWeight: 2
+                    }
+                });
+                const info = new google.maps.InfoWindow({
+                    content: `<b>${g.nombre}</b><br>${g.direccion || ""}${g.rating ? "<br>⭐ " + g.rating : ""}`
+                });
+                m.addListener("click", () => info.open(mapa, m));
+                marcadoresGasolineras.push(m);
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            coords.forEach(p => bounds.extend(p));
+            if (lineaRutaAlterna) {
+                const coordsAlt = lineaRutaAlterna.getPath().getArray();
+                coordsAlt.forEach(p => bounds.extend(p));
+            }
+            mapa.fitBounds(bounds, { padding: 40 });
+        }
+
+        function alternarRutaMostrada() {
+            if (!lineaRutaAlterna || !lineaRuta) return;
+            mostrandoRutaAlterna = !mostrandoRutaAlterna;
+            lineaRuta.setVisible(!mostrandoRutaAlterna);
+            lineaRutaAlterna.setVisible(mostrandoRutaAlterna);
+            const btnAlt = document.getElementById("btnAlternativa");
+            btnAlt.textContent = mostrandoRutaAlterna
+                ? "🔀 Volver a ruta principal"
+                : "🔀 Cambiar a ruta alterna";
+            setMsg(mostrandoRutaAlterna
+                ? "🟠 Mostrando ruta alterna sugerida"
+                : "🟦 Mostrando ruta principal");
+        }
+
+        function limpiarGasolineras() {
+            marcadoresGasolineras.forEach(m => m.setMap(null));
+            marcadoresGasolineras = [];
+        }
+
+        // ══════════════════════════════════════
+        //  TABS RUTAS ALTERNATIVAS
+        // ══════════════════════════════════════
+        function mostrarRutasTabs(rutasInfo, sel) {
+            ultimaRutasInfo = rutasInfo;
+            const cont = document.getElementById("rutaTabs");
+            cont.innerHTML = "";
+            rutasInfo.forEach((r, i) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "tab-ruta" + (i === sel ? " activo" : "");
+                const casetas = r.costo_casetas > 0 ? ` · Casetas $${r.costo_casetas}` : " · Sin casetas";
+                btn.innerHTML = `<strong>Ruta ${i + 1}</strong><small>${r.summary || "Alternativa"} · ${r.distancia_km} km · ${r.duracion_texto}${casetas}</small>`;
+                btn.onclick = () => calcular(false, i);
+                cont.appendChild(btn);
+            });
+        }
+
+        // ══════════════════════════════════════
+        //  MOSTRAR DATOS
+        // ══════════════════════════════════════
+        function mostrarDatos(data, combustible) {
+            document.getElementById("datosPlaceholder").style.display = "none";
+            const cont = document.getElementById("datosContenido");
+            cont.style.display = "flex";
+
+            // Distancia
+            document.getElementById("resDistancia").textContent = data.distancia_km + " km";
+
+            // Duración + tráfico
+            let durMin = data.duracion_minutos || 0;
+            let durTexto = data.duracion_texto || "—";
+            let traficoTxt = "", traficoClase = "";
+            const hs = document.getElementById("horaSalida").value;
+            if (hs && durMin > 0) {
+                const h = parseInt(hs.split(":")[0]);
+                const f = FACTORES_TRAFICO[h] || 1.0;
+                const aj = Math.round(durMin * f);
+                durTexto = formatDur(aj);
+                if (f > 1.3) { traficoTxt = "⚠️ Tráfico alto a esta hora"; traficoClase = "rojo"; }
+                else if (f > 1.1) { traficoTxt = "🚦 Tráfico moderado"; traficoClase = "naranja"; }
+                else { traficoTxt = "✅ Tráfico fluido"; traficoClase = "verde"; }
+            }
+            document.getElementById("resDuracion").textContent = durTexto;
+            document.getElementById("resTrafico").textContent = traficoTxt;
+            const trafEl = document.getElementById("resTraficoAlerta");
+            if (traficoTxt) {
+                trafEl.className = "alerta-wrap " + traficoClase;
+                trafEl.style.display = "block";
+                document.getElementById("textoTrafico").textContent = traficoTxt;
+            } else { trafEl.style.display = "none"; }
+
+            // Hora de llegada con zona horaria
+            const ih = data.info_horaria || {};
+            const filaHL = document.getElementById("filaHoraLlegada");
+            if (ih.hora_llegada) {
+                filaHL.style.display = "flex";
+                document.getElementById("resHoraLlegada").textContent = ih.hora_llegada + "  (" + ih.fecha_llegada + ")";
+                let tzTxt = ih.zona_horaria_destino || "";
+                if (ih.diferencia_horas && ih.diferencia_horas !== 0) {
+                    tzTxt += ih.diferencia_horas > 0
+                        ? ` (+${ih.diferencia_horas}h respecto a tu zona)`
+                        : ` (${ih.diferencia_horas}h respecto a tu zona)`;
+                }
+                document.getElementById("resZonaHoraria").textContent = tzTxt;
+                // Actualizar campo
+                document.getElementById("horaLlegada").value = ih.hora_llegada;
+                document.getElementById("textoZonaHoraria").textContent = tzTxt ? "🌐 " + tzTxt : "";
+            } else {
+                filaHL.style.display = "none";
+                calcularHoraLlegadaLocal(data.duracion_minutos || 0);
+            }
+
+            // Combustible consumo
+            const tipoComb = data.tipo_combustible || "gasolina";
+            const precioComb = data.precio_combustible || 23.99;
+            document.getElementById("resGasolina").textContent =
+                data.litros_estimados.toFixed(2) + " L — $" + data.costo_combustible.toFixed(2) + " MXN";
+            document.getElementById("resPrecioComb").textContent =
+                (tipoComb === "diesel" ? "🛢️ Diésel" : "⛽ Gasolina") + " $" + precioComb.toFixed(2) + "/L";
+
+            // Gasto total
+            document.getElementById("resGasto").textContent = "$" + data.costo_total.toFixed(2) + " MXN";
+            document.getElementById("resGastoSub").textContent = data.costo_casetas > 0
+                ? "Combustible $" + data.costo_combustible.toFixed(0) + " + Casetas $" + data.costo_casetas.toFixed(0)
+                : "";
+
+            // Advertencia/Restante combustible
+            const advEl = document.getElementById("resCombAdvertencia");
+            const restEl = document.getElementById("resCombRestante");
+            if (data.advertencia_combustible) {
+                advEl.style.display = "block";
+                restEl.style.display = "none";
+                document.getElementById("textoCombAdvertencia").textContent = data.advertencia_combustible;
+            } else if (combustible > 0 && data.combustible_restante !== null) {
+                advEl.style.display = "none";
+                restEl.style.display = "block";
+                document.getElementById("textoCombRestante").textContent =
+                    "✅ Combustible restante: " + data.combustible_restante.toFixed(2) + " L";
+            } else {
+                advEl.style.display = "none";
+                restEl.style.display = "none";
+            }
+
+            // Casetas
+            const casEl = document.getElementById("resCasetas");
+            casEl.style.display = "block";
+            let texCasetas = data.costo_casetas > 0
+                ? `🛣️ Casetas estimadas: $${data.costo_casetas.toFixed(2)} MXN`
+                : "✅ Sin casetas en esta ruta";
+            if (data.casetas_detalle && data.casetas_detalle.length > 0) {
+                texCasetas += " (" + data.casetas_detalle.length + " tramo(s))";
+            }
+            document.getElementById("textoCasetas").textContent = texCasetas;
+
+            // Zona peligrosa
+            const zonaEl = document.getElementById("resZonaPeligrosa");
+            if (data.advertencia_zona) {
+                zonaEl.style.display = "block";
+                document.getElementById("textoZonaPeligrosa").textContent = data.advertencia_zona;
+            } else {
+                zonaEl.style.display = "none";
+            }
+
+            // Gasolineras
+            const gasEl = document.getElementById("resGasolineras");
+            const gasList = data.gasolineras_sugeridas || [];
+            if (gasList.length > 0) {
+                gasEl.style.display = "block";
+                const nombres = gasList.slice(0, 3).map(g => g.nombre).join(", ");
+                document.getElementById("textoGasolineras").textContent =
+                    `⛽ Gasolineras cercanas: ${nombres}`;
+            } else {
+                gasEl.style.display = "none";
+            }
+
+            // Status
+            const statEl = document.getElementById("resStatus");
+            statEl.style.display = "block";
+            document.getElementById("textoStatus").textContent =
+                `✓ Ruta ${rutaIndex + 1} de ${rutaTotal} · ${data.evitar_casetas ? "Evitando casetas" : "Con casetas"}`;
+        }
+
+        // ══════════════════════════════════════
+        //  HORA DE LLEGADA LOCAL (fallback)
+        // ══════════════════════════════════════
+        function calcularHoraLlegadaLocal(durMin) {
+            const hs = document.getElementById("horaSalida").value;
+            if (!hs || !durMin) return;
+            const [hh, mm] = hs.split(":").map(Number);
+            const total = hh * 60 + mm + durMin;
+            const hL = Math.floor(total / 60) % 24;
+            const mL = total % 60;
+            document.getElementById("horaLlegada").value =
+                String(hL).padStart(2, "0") + ":" + String(mL).padStart(2, "0");
+        }
+
+        // ══════════════════════════════════════
+        //  UTILIDADES
+        // ══════════════════════════════════════
+        function formatDur(min) {
+            if (min >= 60) {
+                const h = Math.floor(min / 60), m = min % 60;
+                return m ? `${h}h ${m}min` : `${h}h`;
+            }
+            return `${min} min`;
+        }
+
+        function limpiarMapa(inputs = true) {
+            if (lineaRuta) { lineaRuta.setMap(null); lineaRuta = null; }
+            if (lineaRutaAlterna) { lineaRutaAlterna.setMap(null); lineaRutaAlterna = null; }
+            marcadores.forEach(m => m.setMap(null)); marcadores = [];
+            limpiarGasolineras();
+            mostrandoRutaAlterna = false;
+            if (inputs) {
+                document.getElementById("origen").value = "";
+                document.getElementById("destino").value = "";
+                document.getElementById("combustibleInicial").value = "";
+                document.getElementById("rendimientoPersonalizado").value = "";
+                document.getElementById("horaLlegada").value = "";
+                document.getElementById("rutaTabs").innerHTML = "";
+                document.getElementById("textoZonaHoraria").textContent = "";
+                document.getElementById("datosPlaceholder").style.display = "block";
+                document.getElementById("datosContenido").style.display = "none";
+                document.getElementById("filaHoraLlegada").style.display = "none";
+                origenSel = false; destinoSel = false;
+                origenLatLng = null; destinoLatLng = null;
+                rutaIndex = 0; rutaTotal = 1;
+                document.getElementById("btnAlternativa").disabled = true;
+                document.getElementById("btnAlternativa").textContent = "🔀 Ver ruta alternativa";
+                document.getElementById("msgMapa").style.display = "block";
+                setMsg("Haz clic en el mapa para elegir origen y destino");
+            }
+        }
+
+        function limpiarTodo() { limpiarMapa(true); }
+        function limpiarOrigen() { document.getElementById("origen").value = ""; origenSel = false; origenLatLng = null; }
+        function limpiarDestino() { document.getElementById("destino").value = ""; destinoSel = false; destinoLatLng = null; }
+
+        function setMsg(txt) {
+            const el = document.getElementById("msgMapa");
+            el.textContent = txt; el.style.display = "block";
+        }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&libraries=places&callback=iniciarMapa"
+        async defer></script>
+</body>
+
+</html>
