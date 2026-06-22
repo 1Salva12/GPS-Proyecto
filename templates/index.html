@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GPS Inteligente Internacional</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-wrap">
+          <div class="logo">
+            <span class="logo-icon">🧭</span>
+            <div>
+              <span class="logo-text">Route<span>Flow</span></span>
+              <span class="logo-sub">Tu viaje en tiempo real</span>
+            </div>
+          </div>
+        </div>
+        <button class="close-sidebar" id="closeSidebar">✕</button>
+      </div>
+
+      <div class="sidebar-highlight">
+        <span>⚡ Ruta rápida</span>
+        <span>🗺️ Mejor recorrido</span>
+      </div>
+
+      <div class="sidebar-scroll">
+        <!-- ORIGEN -->
+        <div class="input-group group-origin">
+          <label>📍 Punto de inicio</label>
+          <div class="input-wrapper">
+            <input type="text" id="originInput" placeholder="Tu ubicación o lugar de salida" autocomplete="off" />
+            <button class="location-btn" id="useMyLocation" title="Usar mi ubicación">⊕</button>
+            <div class="autocomplete-dropdown" id="originDropdown"></div>
+          </div>
+        </div>
+
+        <!-- DESTINO -->
+        <div class="input-group group-dest">
+          <label>🎯 Destino</label>
+          <div class="input-wrapper">
+            <input type="text" id="destInput" placeholder="Lugar al que quieres llegar" autocomplete="off" />
+            <div class="autocomplete-dropdown" id="destDropdown"></div>
+          </div>
+        </div>
+
+        <!-- TIPO DE VEHÍCULO -->
+        <div class="input-group">
+          <label>🚘 Tipo de viaje</label>
+          <div class="vehicle-selector">
+            <button class="vehicle-btn active" data-type="auto">🚗<span>Coche</span></button>
+            <button class="vehicle-btn" data-type="moto">🏍️<span>Moto</span></button>
+            <button class="vehicle-btn" data-type="camion">🚚<span>Camión</span></button>
+            <button class="vehicle-btn" data-type="taxi">🚕<span>Taxi</span></button>
+          </div>
+        </div>
+
+        <!-- SUBCLASE CAMIÓN/AUTOBÚS -->
+        <div class="input-group time-grid" id="axleGroup" style="display:none">
+          <div class="input-group">
+            <label>🚚 Tipo</label>
+            <select id="truckKind">
+              <option value="truck">Carga</option>
+              <option value="bus">Pasajeros</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>🛞 Ejes</label>
+            <select id="truckAxles"></select>
+          </div>
+        </div>
+
+        <!-- HORARIOS -->
+        <div class="time-grid">
+          <div class="input-group">
+            <label>📆 Inicio</label>
+            <input type="date" id="departureDate" />
+          </div>
+          <div class="input-group">
+            <label>⏰ Hora</label>
+            <input type="time" id="departureTime" />
+          </div>
+        </div>
+        <div class="time-grid">
+          <div class="input-group">
+            <label>📅 Llegada</label>
+            <input type="date" id="arrivalDate" readonly />
+          </div>
+          <div class="input-group">
+            <label>🕒 Estimada</label>
+            <input type="time" id="arrivalTime" readonly />
+          </div>
+        </div>
+
+        <!-- OPCIONES -->
+        <div class="options-group">
+          <label class="section-label">⚙️ Preferencias</label>
+          <label class="toggle-option">
+            <input type="checkbox" id="avoidTolls" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span>Sin peajes</span>
+          </label>
+          <label class="toggle-option">
+            <input type="checkbox" id="avoidRed" checked />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span>Evitar zonas peligrosas</span>
+          </label>
+          <label class="toggle-option">
+            <input type="checkbox" id="avoidTraffic" checked />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span>Evitar tráfico</span>
+          </label>
+        </div>
+
+        <!-- ALGORITMO -->
+        <div class="input-group">
+          <label>🧠 Método de ruta</label>
+          <select id="algorithmSelect">
+            <option value="astar">A* — Prioridad rápida</option>
+            <option value="manhattan">Manhattan — Menor distancia</option>
+            <option value="uniform">Dijkstra — Menor costo</option>
+            <option value="genetic">Evolutivo — Equilibrado</option>
+          </select>
+        </div>
+
+        <!-- PRECIO GASOLINA -->
+        <div class="input-group">
+          <label>⛽ Precio de gasolina</label>
+          <input type="number" id="fuelPriceOverride" step="0.01" min="0" placeholder="Ej. 24.50 por litro" />
+        </div>
+
+        <!-- BOTÓN CALCULAR -->
+        <button class="search-btn" id="searchBtn">
+          <span class="btn-icon">🧭</span>
+          <span>Encontrar ruta</span>
+        </button>
+
+        <!-- COMBUSTIBLE -->
+        <div class="fuel-section">
+          <label>⛽ Nivel de gasolina</label>
+          <div class="fuel-bar-wrapper">
+            <div class="fuel-bar">
+              <div class="fuel-fill" id="fuelFill" style="width:65%"></div>
+            </div>
+            <span id="fuelPercent">65%</span>
+          </div>
+          <input type="range" id="fuelSlider" min="0" max="100" value="65" class="fuel-slider" />
+          <div class="fuel-alert" id="fuelAlert" style="display:none">
+            ⚠️ Queda poco combustible, revisa antes de salir.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== MAPA ===== -->
+    <div class="map-container">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div id="map"></div>
+
+      <!-- PANEL DE INFORMACIÓN -->
+      <div class="info-panel" id="infoPanel" style="display:none">
+        <div class="info-header">
+          <h3 id="routeTitle">Resumen del viaje</h3>
+          <button class="close-info" id="closeInfo">✕</button>
+        </div>
+
+        <div class="info-stats">
+          <div class="stat-card">
+            <span class="stat-icon">📏</span>
+            <span class="stat-value" id="routeDistance">--</span>
+            <span class="stat-label">Kilómetros</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⏱️</span>
+            <span class="stat-value" id="routeTime">--</span>
+            <span class="stat-label">Duración</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">💵</span>
+            <span class="stat-value" id="routeTolls">--</span>
+            <span class="stat-label">Peajes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⛽</span>
+            <span class="stat-value" id="routeFuel">--</span>
+            <span class="stat-label">Gasolina</span>
+          </div>
+        </div>
+
+        <div class="alt-routes" id="altRoutes">
+          <p class="alt-title">🛣️ Rutas alternativas</p>
+          <div id="altRoutesList"></div>
+        </div>
+
+        <div class="tolls-detail" id="tollsDetail">
+          <p class="detail-title">💳 Peajes en la ruta</p>
+          <div id="tollsList"></div>
+        </div>
+
+        <div id="fuelInfo" class="fuel-info-panel"></div>
+
+        <div class="timezone-info" id="timezoneInfo">
+          <p class="detail-title">🌍 Zona horaria</p>
+          <div id="timezoneContent"></div>
+        </div>
+
+        <div class="arrival-box" id="arrivalBox">
+          <p class="detail-title">🗓️ Horario del viaje</p>
+          <div id="arrivalContent"></div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot red"></span> Riesgo</div>
+        <div class="legend-item"><span class="legend-dot orange"></span> Peaje</div>
+        <div class="legend-item"><span class="legend-dot blue"></span> Ruta</div>
+        <div class="legend-item"><span class="legend-dot gray"></span> Tráfico</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='js/data.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/algorithms.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
